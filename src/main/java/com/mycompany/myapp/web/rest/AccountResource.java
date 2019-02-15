@@ -6,7 +6,8 @@ import com.mycompany.myapp.web.rest.errors.InternalServerErrorException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.security.oauth2.provider.OAuth2Authentication;
+import org.springframework.security.oauth2.client.authentication.OAuth2LoginAuthenticationToken;
+import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -52,8 +53,8 @@ public class AccountResource {
     @SuppressWarnings("unchecked")
     public UserDTO getAccount(Principal principal) {
         if (principal != null) {
-            if (principal instanceof OAuth2Authentication) {
-                return userService.getUserFromAuthentication((OAuth2Authentication) principal);
+            if (principal instanceof OAuth2User) {
+                return userService.getUserFromAuthentication((OAuth2User) principal);
             } else {
                 // Allow Spring Security Test to be used to mock users in the database
                 return userService.getUserWithAuthorities()
