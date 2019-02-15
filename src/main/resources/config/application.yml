@@ -104,7 +104,6 @@ spring:
                 size: 2
     thymeleaf:
         mode: HTML
-spring:
     security:
         oauth2:
             client:

@@ -4,7 +4,6 @@ import com.mycompany.myapp.security.AuthoritiesConstants;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
-import org.springframework.context.annotation.Profile;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -66,7 +65,6 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
         .and()
             .addFilterBefore(corsFilter, CsrfFilter.class)
             .exceptionHandling()
-            .authenticationEntryPoint(problemSupport)
             .accessDeniedHandler(problemSupport)
         .and()
             .headers()
@@ -79,8 +77,8 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
             .antMatchers("/management/info").permitAll()
             .antMatchers("/management/**").hasAuthority(AuthoritiesConstants.ADMIN)
         .and()
-            .oauth2Login();
-
+            .oauth2Login()
+            .userInfoEndpoint().userAuthoritiesMapper(userAuthoritiesMapper());
     }
 
     @SuppressWarnings("unchecked")
@@ -90,10 +88,9 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 
             authorities.forEach(authority -> {
                 OidcUserAuthority oidcUserAuthority = (OidcUserAuthority) authority;
-                //OidcIdToken idToken = oidcUserAuthority.getIdToken();
                 OidcUserInfo userInfo = oidcUserAuthority.getUserInfo();
                 Collection<String> groups = (Collection<String>) userInfo.getClaims().get("groups");
-                if (groups.isEmpty()) {
+                if (groups == null) {
                     groups = (Collection<String>) userInfo.getClaims().get("roles");
                 }
                 mappedAuthorities.addAll(groups.stream()
@@ -105,7 +102,6 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
     }
 
     @Bean
-    @Profile("dev")
     public RequestCache refererRequestCache() {
         return new HttpSessionRequestCache() {
             @Override
