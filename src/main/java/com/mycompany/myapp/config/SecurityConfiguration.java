@@ -65,6 +65,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
         .and()
             .addFilterBefore(corsFilter, CsrfFilter.class)
             .exceptionHandling()
+            //.authenticationEntryPoint(problemSupport)
             .accessDeniedHandler(problemSupport)
         .and()
             .headers()
@@ -73,16 +74,18 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
         .and()
             .authorizeRequests()
             .antMatchers("/api/**").authenticated()
+            .antMatchers("/authorize").authenticated()
             .antMatchers("/management/health").permitAll()
             .antMatchers("/management/info").permitAll()
             .antMatchers("/management/**").hasAuthority(AuthoritiesConstants.ADMIN)
         .and()
-            .oauth2Login()
-            .userInfoEndpoint().userAuthoritiesMapper(userAuthoritiesMapper());
+            .oauth2Login();
     }
 
+
+    @Bean
     @SuppressWarnings("unchecked")
-    private GrantedAuthoritiesMapper userAuthoritiesMapper() {
+    public GrantedAuthoritiesMapper userAuthoritiesMapper() {
         return (authorities) -> {
             Set<GrantedAuthority> mappedAuthorities = new HashSet<>();
 
@@ -94,6 +97,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                     groups = (Collection<String>) userInfo.getClaims().get("roles");
                 }
                 mappedAuthorities.addAll(groups.stream()
+                    .filter(group -> group.startsWith("ROLE_"))
                     .map(SimpleGrantedAuthority::new).collect(Collectors.toList()));
             });
 
@@ -101,7 +105,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
         };
     }
 
-    @Bean
+    //@Bean
     public RequestCache refererRequestCache() {
         return new HttpSessionRequestCache() {
             @Override

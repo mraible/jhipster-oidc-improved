@@ -52,7 +52,7 @@ public class AccountResource {
     public UserDTO getAccount(Principal principal) {
         if (principal != null) {
             if (principal instanceof OAuth2AuthenticationToken) {
-                return userService.getUserFromAuthentication(((OAuth2AuthenticationToken) principal).getPrincipal());
+                return userService.getUserFromAuthentication((OAuth2AuthenticationToken) principal);
             } else {
                 // Allow Spring Security Test to be used to mock users in the database
                 return userService.getUserWithAuthorities()

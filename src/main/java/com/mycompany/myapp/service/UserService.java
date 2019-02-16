@@ -12,9 +12,13 @@ import org.slf4j.LoggerFactory;
 import org.springframework.cache.CacheManager;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
 
 import java.time.Instant;
 import java.util.*;
@@ -64,48 +68,6 @@ public class UserService {
             });
     }
 
-    /**
-     * Update all information for a specific user, and return the modified user.
-     *
-     * @param userDTO user to update
-     * @return updated user
-     */
-    public Optional<UserDTO> updateUser(UserDTO userDTO) {
-        return Optional.of(userRepository
-            .findById(userDTO.getId()))
-            .filter(Optional::isPresent)
-            .map(Optional::get)
-            .map(user -> {
-                this.clearUserCaches(user);
-                user.setLogin(userDTO.getLogin().toLowerCase());
-                user.setFirstName(userDTO.getFirstName());
-                user.setLastName(userDTO.getLastName());
-                user.setEmail(userDTO.getEmail().toLowerCase());
-                user.setImageUrl(userDTO.getImageUrl());
-                user.setActivated(userDTO.isActivated());
-                user.setLangKey(userDTO.getLangKey());
-                Set<Authority> managedAuthorities = user.getAuthorities();
-                managedAuthorities.clear();
-                userDTO.getAuthorities().stream()
-                    .map(authorityRepository::findById)
-                    .filter(Optional::isPresent)
-                    .map(Optional::get)
-                    .forEach(managedAuthorities::add);
-                this.clearUserCaches(user);
-                log.debug("Changed Information for User: {}", user);
-                return user;
-            })
-            .map(UserDTO::new);
-    }
-
-    public void deleteUser(String login) {
-        userRepository.findOneByLogin(login).ifPresent(user -> {
-            userRepository.delete(user);
-            this.clearUserCaches(user);
-            log.debug("Deleted User: {}", user);
-        });
-    }
-
     @Transactional(readOnly = true)
     public Page<UserDTO> getAllManagedUsers(Pageable pageable) {
         return userRepository.findAllByLoginNot(pageable, Constants.ANONYMOUS_USER).map(UserDTO::new);
@@ -137,13 +99,18 @@ public class UserService {
      * Returns the user for a OAuth2 authentication.
      * Synchronizes the user in the local repository
      *
-     * @param oAuth2User OAuth2User
+     * @param authToken the authentication token
      * @return the user from the authentication
      */
     @SuppressWarnings("unchecked")
-    public UserDTO getUserFromAuthentication(OAuth2User oAuth2User) {
-        Map<String, Object> attributes = oAuth2User.getAttributes();
+    public UserDTO getUserFromAuthentication(OAuth2AuthenticationToken authToken) {
+        Map<String, Object> attributes = authToken.getPrincipal().getAttributes();
         User user = getUser(attributes);
+        user.setAuthorities(authToken.getAuthorities().stream().map(authority -> {
+                Authority auth = new Authority();
+                auth.setName((authority).getAuthority());
+                return auth;
+            }).collect(Collectors.toSet()));
         return new UserDTO(syncUserWithIdP(attributes, user));
     }
 
