@@ -7,22 +7,25 @@ import com.mycompany.myapp.repository.AuthorityRepository;
 import com.mycompany.myapp.repository.UserRepository;
 import com.mycompany.myapp.security.SecurityUtils;
 import com.mycompany.myapp.service.dto.UserDTO;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.cache.CacheManager;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
-import org.springframework.security.oauth2.core.user.OAuth2User;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.CollectionUtils;
 
 import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Service class for managing users.
@@ -48,11 +51,11 @@ public class UserService {
     /**
      * Update basic information (first name, last name, email, language) for the current user.
      *
-     * @param firstName first name of user
-     * @param lastName  last name of user
-     * @param email     email id of user
-     * @param langKey   language key
-     * @param imageUrl  image URL of user
+     * @param firstName first name of user.
+     * @param lastName  last name of user.
+     * @param email     email id of user.
+     * @param langKey   language key.
+     * @param imageUrl  image URL of user.
      */
     public void updateUser(String firstName, String lastName, String email, String langKey, String imageUrl) {
         SecurityUtils.getCurrentUserLogin()
@@ -66,6 +69,48 @@ public class UserService {
                 this.clearUserCaches(user);
                 log.debug("Changed Information for User: {}", user);
             });
+    }
+
+    /**
+     * Update all information for a specific user, and return the modified user.
+     *
+     * @param userDTO user to update.
+     * @return updated user.
+     */
+    public Optional<UserDTO> updateUser(UserDTO userDTO) {
+        return Optional.of(userRepository
+            .findById(userDTO.getId()))
+            .filter(Optional::isPresent)
+            .map(Optional::get)
+            .map(user -> {
+                this.clearUserCaches(user);
+                user.setLogin(userDTO.getLogin().toLowerCase());
+                user.setFirstName(userDTO.getFirstName());
+                user.setLastName(userDTO.getLastName());
+                user.setEmail(userDTO.getEmail().toLowerCase());
+                user.setImageUrl(userDTO.getImageUrl());
+                user.setActivated(userDTO.isActivated());
+                user.setLangKey(userDTO.getLangKey());
+                Set<Authority> managedAuthorities = user.getAuthorities();
+                managedAuthorities.clear();
+                userDTO.getAuthorities().stream()
+                    .map(authorityRepository::findById)
+                    .filter(Optional::isPresent)
+                    .map(Optional::get)
+                    .forEach(managedAuthorities::add);
+                this.clearUserCaches(user);
+                log.debug("Changed Information for User: {}", user);
+                return user;
+            })
+            .map(UserDTO::new);
+    }
+
+    public void deleteUser(String login) {
+        userRepository.findOneByLogin(login).ifPresent(user -> {
+            userRepository.delete(user);
+            this.clearUserCaches(user);
+            log.debug("Deleted User: {}", user);
+        });
     }
 
     @Transactional(readOnly = true)
@@ -89,20 +134,20 @@ public class UserService {
     }
 
     /**
-     * @return a list of all the authorities
+     * Gets a list of all the authorities.
+     * @return a list of all the authorities.
      */
     public List<String> getAuthorities() {
         return authorityRepository.findAll().stream().map(Authority::getName).collect(Collectors.toList());
     }
 
     /**
-     * Returns the user for a OAuth2 authentication.
-     * Synchronizes the user in the local repository
+     * Returns the user from an OAuth2 login.
+     * Synchronizes the user in the local repository.
      *
-     * @param authToken the authentication token
-     * @return the user from the authentication
+     * @param authentication OAuth2 authentication
+     * @return authToken the authentication token
      */
-    @SuppressWarnings("unchecked")
     public UserDTO getUserFromAuthentication(OAuth2AuthenticationToken authToken) {
         Map<String, Object> attributes = authToken.getPrincipal().getAttributes();
         User user = getUser(attributes);
@@ -122,9 +167,9 @@ public class UserService {
         for (String authority : userAuthorities) {
             if (!dbAuthorities.contains(authority)) {
                 log.debug("Saving authority '{}' in local database", authority);
-                Authority authoritytoSave = new Authority();
-                authoritytoSave.setName(authority);
-                authorityRepository.save(authoritytoSave);
+                Authority authorityToSave = new Authority();
+                authorityToSave.setName(authority);
+                authorityRepository.save(authorityToSave);
             }
         }
         // save account in to sync users between IdP and JHipster's local database
@@ -176,14 +221,20 @@ public class UserService {
         if (details.get("langKey") != null) {
             user.setLangKey((String) details.get("langKey"));
         } else if (details.get("locale") != null) {
+            // For the locale issue, we suggest you adjust the format based on the OAuth server.
+            // Here we can't cater for all the use-cases, see:
+            // https://github.com/jhipster/generator-jhipster/issues/7866
+            // for the en_US or en_** issue.
+            // Since JHipter only has one "en" language, we will handle it here,
+            // for other languages, please handle it accordingly.
             String locale = (String) details.get("locale");
-            if (locale.contains("-")) {
-                String langKey = locale.substring(0, locale.indexOf('-'));
-                user.setLangKey(langKey);
-            } else if (locale.contains("_")) {
-                String langKey = locale.substring(0, locale.indexOf('_'));
-                user.setLangKey(langKey);
+            if (locale.startsWith("en_") || locale.startsWith("en-")) {
+                locale = "en";
             }
+            user.setLangKey(locale.toLowerCase());
+        } else {
+            // set langKey to default if not specified by IdP
+            user.setLangKey(Constants.DEFAULT_LANGUAGE);
         }
         if (details.get("picture") != null) {
             user.setImageUrl((String) details.get("picture"));

@@ -5,7 +5,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
@@ -14,25 +13,15 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
-import java.util.HashMap;
-import java.util.Map;
-
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 /**
- * Test class for the LogoutResource REST controller.
- *
- * @see LogoutResource
+ * Integration tests for the {@link LogoutResource} REST controller.
  */
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = JhipsterApp.class)
 public class LogoutResourceIT {
-
-    @Autowired
-    private MappingJackson2HttpMessageConverter jacksonMessageConverter;
 
     @Autowired
     private ClientRegistrationRepository registrations;
@@ -42,6 +31,9 @@ public class LogoutResourceIT {
         "p0aSI6ImQzNWRmMTRkLTA5ZjYtNDhmZi04YTkzLTdjNmYwMzM5MzE1OSIsImlhdCI6MTU0M" +
         "Tk3MTU4MywiZXhwIjoxNTQxOTc1MTgzfQ.QaQOarmV8xEUYV7yvWzX3cUE_4W1luMcWCwpr" +
         "oqqUrg";
+
+    @Autowired
+    private MappingJackson2HttpMessageConverter jacksonMessageConverter;
 
     private MockMvc restLogoutMockMvc;
 
@@ -56,7 +48,6 @@ public class LogoutResourceIT {
     public void getLogoutInformation() throws Exception {
         String logoutUrl = this.registrations.findByRegistrationId("oidc").getProviderDetails()
             .getConfigurationMetadata().get("end_session_endpoint").toString();
-
         restLogoutMockMvc.perform(post("/api/logout"))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))

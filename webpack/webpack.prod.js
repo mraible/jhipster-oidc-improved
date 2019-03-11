@@ -46,7 +46,12 @@ module.exports = webpackMerge(commonConfig({ env: ENV }), {
         {
             test: /(vendor\.scss|global\.scss)/,
             use: [
-                MiniCssExtractPlugin.loader,
+                {
+                    loader: MiniCssExtractPlugin.loader,
+                    options: {
+                        publicPath: '../'
+                    }
+                },
                 'css-loader',
                 'postcss-loader',
                 {
@@ -63,7 +68,12 @@ module.exports = webpackMerge(commonConfig({ env: ENV }), {
         {
             test: /(vendor\.css|global\.css)/,
             use: [
-                MiniCssExtractPlugin.loader,
+                {
+                    loader: MiniCssExtractPlugin.loader,
+                    options: {
+                        publicPath: '../'
+                    }
+                },
                 'css-loader',
                 'postcss-loader'
             ]
@@ -115,8 +125,8 @@ module.exports = webpackMerge(commonConfig({ env: ENV }), {
         new MiniCssExtractPlugin({
             // Options similar to the same options in webpackOptions.output
             // both options are optional
-            filename: '[name].[contenthash].css',
-            chunkFilename: '[id].css'
+            filename: 'content/[name].[contenthash].css',
+            chunkFilename: 'content/[id].css'
         }),
         new MomentLocalesPlugin({
             localesToKeep: [

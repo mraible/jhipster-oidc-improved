@@ -26,9 +26,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static com.mycompany.myapp.repository.CustomAuditEventRepository.EVENT_DATA_COLUMN_MAX_LENGTH;
 
 /**
- * Test class for the CustomAuditEventRepository class.
- *
- * @see CustomAuditEventRepository
+ * Integration tests for {@link CustomAuditEventRepository}.
  */
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = JhipsterApp.class)

@@ -14,7 +14,7 @@ import java.util.Optional;
 import java.time.Instant;
 
 /**
- * Spring Data JPA repository for the User entity.
+ * Spring Data JPA repository for the {@link User} entity.
  */
 @Repository
 public interface UserRepository extends JpaRepository<User, String> {

@@ -20,7 +20,7 @@ import static java.lang.String.format;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * Unit tests for the UTC Hibernate configuration.
+ * Integration tests for the UTC Hibernate configuration.
  */
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = JhipsterApp.class)

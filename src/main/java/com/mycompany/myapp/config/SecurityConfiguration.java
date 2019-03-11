@@ -1,8 +1,8 @@
 package com.mycompany.myapp.config;
 
-import com.mycompany.myapp.security.AuthoritiesConstants;
+import com.mycompany.myapp.security.*;
+
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
@@ -10,27 +10,21 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import com.okta.developer.store.security.oauth2.AudienceValidator;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.authority.mapping.GrantedAuthoritiesMapper;
+import org.springframework.security.oauth2.core.DelegatingOAuth2TokenValidator;
+import org.springframework.security.oauth2.core.OAuth2TokenValidator;
 import org.springframework.security.oauth2.core.oidc.OidcUserInfo;
 import org.springframework.security.oauth2.core.oidc.user.OidcUserAuthority;
+import org.springframework.security.oauth2.jwt.*;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.csrf.CsrfFilter;
-import org.springframework.security.web.savedrequest.HttpSessionRequestCache;
-import org.springframework.security.web.savedrequest.RequestCache;
-import org.springframework.security.web.savedrequest.SimpleSavedRequest;
 import org.springframework.web.filter.CorsFilter;
 import org.zalando.problem.spring.web.advice.security.SecurityProblemSupport;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-@Configuration
 @EnableWebSecurity
 @EnableGlobalMethodSecurity(prePostEnabled = true, securedEnabled = true)
 @Import(SecurityProblemSupport.class)
@@ -41,6 +35,8 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
     private final SecurityProblemSupport problemSupport;
 
     public SecurityConfiguration(CorsFilter corsFilter, SecurityProblemSupport problemSupport) {
+        @Value("${spring.security.oauth2.client.provider.oidc.issuer-uri}")
+        private String issuerUri;
         this.corsFilter = corsFilter;
         this.problemSupport = problemSupport;
     }
@@ -65,7 +61,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
         .and()
             .addFilterBefore(corsFilter, CsrfFilter.class)
             .exceptionHandling()
-            //.authenticationEntryPoint(problemSupport)
+            .authenticationEntryPoint(problemSupport)
             .accessDeniedHandler(problemSupport)
         .and()
             .headers()
@@ -77,13 +73,15 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
             .antMatchers("/authorize").authenticated()
             .antMatchers("/management/health").permitAll()
             .antMatchers("/management/info").permitAll()
+            .antMatchers("/management/prometheus").permitAll()
             .antMatchers("/management/**").hasAuthority(AuthoritiesConstants.ADMIN)
         .and()
             .oauth2Login();
     }
 
-
-    @Bean
+    /**
+     * Map authorities from "groups" or "roles" claim in ID Token.
+     */
     @SuppressWarnings("unchecked")
     public GrantedAuthoritiesMapper userAuthoritiesMapper() {
         return (authorities) -> {
@@ -105,16 +103,18 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
         };
     }
 
-    //@Bean
-    public RequestCache refererRequestCache() {
-        return new HttpSessionRequestCache() {
-            @Override
-            public void saveRequest(HttpServletRequest request, HttpServletResponse response) {
-                String referrer = request.getHeader("referer");
-                if (referrer != null) {
-                    request.getSession().setAttribute("SPRING_SECURITY_SAVED_REQUEST", new SimpleSavedRequest(referrer));
-                }
-            }
-        };
+    @Bean
+    JwtDecoder jwtDecoder() {
+        NimbusJwtDecoderJwkSupport jwtDecoder = (NimbusJwtDecoderJwkSupport)
+            JwtDecoders.fromOidcIssuerLocation(issuerUri);
+
+        OAuth2TokenValidator<Jwt> audienceValidator = new AudienceValidator();
+        OAuth2TokenValidator<Jwt> withIssuer = JwtValidators.createDefaultWithIssuer(issuerUri);
+        OAuth2TokenValidator<Jwt> withAudience = new DelegatingOAuth2TokenValidator<>(withIssuer, audienceValidator);
+
+        jwtDecoder.setJwtValidator(withAudience);
+
+        return jwtDecoder;
     }
+
 }

@@ -1,4 +1,4 @@
-package com.mycompany.myapp.security;
+package com.mycompany.myapp.security.oauth2;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;

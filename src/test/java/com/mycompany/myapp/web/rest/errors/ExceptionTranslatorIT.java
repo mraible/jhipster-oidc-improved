@@ -19,9 +19,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
- * Test class for the ExceptionTranslator controller advice.
- *
- * @see ExceptionTranslator
+ * Integration tests {@link ExceptionTranslator} controller advice.
  */
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = JhipsterApp.class)

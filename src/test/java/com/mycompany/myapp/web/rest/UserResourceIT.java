@@ -36,9 +36,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 /**
- * Test class for the UserResource REST controller.
- *
- * @see UserResource
+ * Integration tests for the {@link UserResource} REST controller.
  */
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = JhipsterApp.class)

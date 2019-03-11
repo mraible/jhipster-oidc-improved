@@ -4,8 +4,9 @@ import com.mycompany.myapp.JhipsterApp;
 import com.mycompany.myapp.config.Constants;
 import com.mycompany.myapp.domain.User;
 import com.mycompany.myapp.repository.UserRepository;
-import com.mycompany.myapp.security.AuthoritiesConstants;
 import com.mycompany.myapp.service.dto.UserDTO;
+import com.mycompany.myapp.security.AuthoritiesConstants;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -26,15 +27,19 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.Optional;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
 /**
- * Test class for the UserResource REST controller.
- *
- * @see UserService
+ * Integration tests for {@link UserService}.
  */
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = JhipsterApp.class)
@@ -51,7 +56,7 @@ public class UserServiceIT {
     private AuditingHandler auditingHandler;
 
     @Mock
-    DateTimeProvider dateTimeProvider;
+    private DateTimeProvider dateTimeProvider;
 
     private User user;
 
@@ -85,6 +90,7 @@ public class UserServiceIT {
             .isTrue();
     }
 
+
     @Test
     @Transactional
     public void assertThatUserLocaleIsCorrectlySetFromAuthenticationDetails() {
@@ -111,10 +117,12 @@ public class UserServiceIT {
 
         userDTO = userService.getUserFromAuthentication(authentication);
 
-        assertThat(userDTO.getLangKey()).isEqualTo("it");
+        assertThat(userDTO.getLangKey()).isEqualTo("it-it");
     }
 
     private OAuth2AuthenticationToken createMockOAuth2AuthenticationToken(Map<String, Object> userDetails) {
+        Set<String> scopes = new HashSet<String>();
+
         Collection<GrantedAuthority> authorities = new ArrayList<>();
         authorities.add(new SimpleGrantedAuthority(AuthoritiesConstants.ANONYMOUS));
         UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken = new UsernamePasswordAuthenticationToken(Constants.ANONYMOUS_USER, Constants.ANONYMOUS_USER, authorities);

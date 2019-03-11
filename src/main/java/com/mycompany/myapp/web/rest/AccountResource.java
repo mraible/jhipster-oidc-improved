@@ -3,9 +3,10 @@ package com.mycompany.myapp.web.rest;
 import com.mycompany.myapp.service.UserService;
 import com.mycompany.myapp.service.dto.UserDTO;
 import com.mycompany.myapp.web.rest.errors.InternalServerErrorException;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
+import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToke;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -29,10 +30,10 @@ public class AccountResource {
     }
 
     /**
-     * GET  /authenticate : check if the user is authenticated, and return its login.
+     * {@code GET  /authenticate} : check if the user is authenticated, and return its login.
      *
-     * @param request the HTTP request
-     * @return the login if the user is authenticated
+     * @param request the HTTP request.
+     * @return the login if the user is authenticated.
      */
     @GetMapping("/authenticate")
     public String isAuthenticated(HttpServletRequest request) {
@@ -41,11 +42,11 @@ public class AccountResource {
     }
 
     /**
-     * GET  /account : get the current user.
+     * {@code GET  /account} : get the current user.
      *
-     * @param principal the current user; resolves to null if not authenticated
-     * @return the current user
-     * @throws InternalServerErrorException 500 (Internal Server Error) if the user couldn't be returned
+     * @param principal the current user; resolves to {@code null} if not authenticated.
+     * @return the current user.
+     * @throws InternalServerErrorException {@code 500 (Internal Server Error)} if the user couldn't be returned.
      */
     @GetMapping("/account")
     @SuppressWarnings("unchecked")
