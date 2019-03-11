@@ -13,12 +13,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.cache.CacheManager;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.oauth2.provider.OAuth2Authentication;
+import com.mycompany.myapp.security.oauth2.AudienceValidator;
+import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -142,11 +138,11 @@ public class UserService {
     }
 
     /**
-     * Returns the user from an OAuth2 login.
+     * Returns the user from an OAuth 2.0 login.
      * Synchronizes the user in the local repository.
      *
-     * @param authentication OAuth2 authentication
-     * @return authToken the authentication token
+     * @param authentication OAuth2 authentication.
+     * @return the user from the authentication.
      */
     public UserDTO getUserFromAuthentication(OAuth2AuthenticationToken authToken) {
         Map<String, Object> attributes = authToken.getPrincipal().getAttributes();

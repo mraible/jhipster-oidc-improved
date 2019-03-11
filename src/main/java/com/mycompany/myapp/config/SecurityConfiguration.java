@@ -32,11 +32,11 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 
     private final CorsFilter corsFilter;
 
+    @Value("${spring.security.oauth2.client.provider.oidc.issuer-uri}")
+    private String issuerUri;
     private final SecurityProblemSupport problemSupport;
 
     public SecurityConfiguration(CorsFilter corsFilter, SecurityProblemSupport problemSupport) {
-        @Value("${spring.security.oauth2.client.provider.oidc.issuer-uri}")
-        private String issuerUri;
         this.corsFilter = corsFilter;
         this.problemSupport = problemSupport;
     }
