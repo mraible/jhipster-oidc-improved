@@ -22,7 +22,7 @@
     "serviceDiscoveryType": false,
     "buildTool": "maven",
     "enableSwaggerCodegen": false,
-    "clientFramework": "angularX",
+    "clientFramework": "react",
     "useSass": true,
     "clientPackageManager": "npm",
     "testFrameworks": ["protractor"],

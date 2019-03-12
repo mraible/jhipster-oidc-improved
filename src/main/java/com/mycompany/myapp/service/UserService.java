@@ -140,7 +140,7 @@ public class UserService {
      * Returns the user from an OAuth 2.0 login.
      * Synchronizes the user in the local repository.
      *
-     * @param authentication OAuth2 authentication.
+     * @param authToken OAuth2 authentication.
      * @return the user from the authentication.
      */
     public UserDTO getUserFromAuthentication(OAuth2AuthenticationToken authToken) {
