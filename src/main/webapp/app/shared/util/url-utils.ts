@@ -1,4 +1,4 @@
 export const getLoginUrl = () => {
   const port = location.port ? `:${location.port}` : '';
-  return `//${location.hostname}${port}${location.pathname}authorize`;
+  return `//${location.hostname}${port}/authorize`;
 };
