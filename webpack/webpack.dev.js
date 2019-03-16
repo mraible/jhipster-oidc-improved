@@ -24,8 +24,7 @@ module.exports = (options) => webpackMerge(commonConfig({ env: ENV }), {
             ],
             target: `http${options.tls ? 's' : ''}://localhost:8080`,
             secure: false,
-            changeOrigin: options.tls,
-            headers: { host: 'localhost:9000' }
+            changeOrigin: options.tls
         }],
         stats: options.stats,
         watchOptions: {
@@ -62,7 +61,9 @@ module.exports = (options) => webpackMerge(commonConfig({ env: ENV }), {
                 {
                     loader: 'thread-loader',
                     options: {
-                        // there should be 1 cpu for the fork-ts-checker-webpack-plugin
+                        // There should be 1 cpu for the fork-ts-checker-webpack-plugin.
+                        // The value may need to be adjusted (e.g. to 1) in some CI environments,
+                        // as cpus() may report more cores than what are available to the build.
                         workers: require('os').cpus().length - 1
                     }
                 },
@@ -91,15 +92,6 @@ module.exports = (options) => webpackMerge(commonConfig({ env: ENV }), {
                 loader: 'sass-loader',
                 options: { implementation: sass }
             }]
-        },
-        {
-            test: /\.css$/,
-            use: ['to-string-loader', 'css-loader'],
-            exclude: /(vendor\.css|global\.css)/
-        },
-        {
-            test: /(vendor\.css|global\.css)/,
-            use: ['style-loader', 'css-loader']
         }]
     },
     stats: process.env.JHI_DISABLE_WEBPACK_LOGS ? 'none' : options.stats,
@@ -115,7 +107,10 @@ module.exports = (options) => webpackMerge(commonConfig({ env: ENV }), {
             host: 'localhost',
             port: 9000,
             proxy: {
-                target: 'http://localhost:9060'
+                target: 'http://localhost:9060',
+                proxyOptions: {
+                    changeOrigin: false  //pass the Host header to the backend unchanged  https://github.com/Browsersync/browser-sync/issues/430
+                }
             },
             socket: {
                 clients: {

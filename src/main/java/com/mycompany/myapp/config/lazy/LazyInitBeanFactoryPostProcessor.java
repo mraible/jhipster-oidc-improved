@@ -21,7 +21,7 @@ import org.springframework.stereotype.Component;
 @Profile(JHipsterConstants.SPRING_PROFILE_DEVELOPMENT)
 public class LazyInitBeanFactoryPostProcessor implements BeanFactoryPostProcessor {
 
-    private Class<?>[] exclusionList;
+    private Class<?>[] exclusionList = {};
 
     public LazyInitBeanFactoryPostProcessor() {
     }

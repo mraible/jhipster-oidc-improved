@@ -20,8 +20,9 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.oauth2.provider.OAuth2Authentication;
-import org.springframework.security.oauth2.provider.OAuth2Request;
+import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
+import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
+import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -38,9 +39,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
 /**
- * Test class for the UserResource REST controller.
- *
- * @see UserService
+ * Integration tests for {@link UserService}.
  */
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = JhipsterApp.class)
@@ -57,7 +56,7 @@ public class UserServiceIT {
     private AuditingHandler auditingHandler;
 
     @Mock
-    DateTimeProvider dateTimeProvider;
+    private DateTimeProvider dateTimeProvider;
 
     private User user;
 
@@ -107,30 +106,29 @@ public class UserServiceIT {
         userDetails.put("picture", user.getImageUrl());
         userDetails.put("locale", "en_US");
 
-        OAuth2Authentication authentication = createMockOAuth2AuthenticationWithDetails(userDetails);
+        OAuth2AuthenticationToken authentication = createMockOAuth2AuthenticationToken(userDetails);
 
         UserDTO userDTO = userService.getUserFromAuthentication(authentication);
 
         assertThat(userDTO.getLangKey()).isEqualTo("en");
 
         userDetails.put("locale", "it-IT");
-        authentication = createMockOAuth2AuthenticationWithDetails(userDetails);
+        authentication = createMockOAuth2AuthenticationToken(userDetails);
 
         userDTO = userService.getUserFromAuthentication(authentication);
 
-        assertThat(userDTO.getLangKey()).isEqualTo("it");
+        assertThat(userDTO.getLangKey()).isEqualTo("it-it");
     }
 
-    private OAuth2Authentication createMockOAuth2AuthenticationWithDetails(Map<String, Object> userDetails) {
+    private OAuth2AuthenticationToken createMockOAuth2AuthenticationToken(Map<String, Object> userDetails) {
         Set<String> scopes = new HashSet<String>();
 
         Collection<GrantedAuthority> authorities = new ArrayList<>();
         authorities.add(new SimpleGrantedAuthority(AuthoritiesConstants.ANONYMOUS));
         UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken = new UsernamePasswordAuthenticationToken(Constants.ANONYMOUS_USER, Constants.ANONYMOUS_USER, authorities);
         usernamePasswordAuthenticationToken.setDetails(userDetails);
+        OAuth2User user = new DefaultOAuth2User(authorities, userDetails, "preferred_username");
 
-        OAuth2Request authRequest = new OAuth2Request(null, "testClient", null, true, scopes, null, null, null, null);
-
-        return new OAuth2Authentication(authRequest, usernamePasswordAuthenticationToken);
+        return new OAuth2AuthenticationToken(user, authorities, "oidc");
     }
 }

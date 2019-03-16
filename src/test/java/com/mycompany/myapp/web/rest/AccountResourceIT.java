@@ -33,9 +33,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
 
 /**
- * Test class for the AccountResource REST controller.
- *
- * @see AccountResource
+ * Integration tests for the {@link AccountResource} REST controller.
  */
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = JhipsterApp.class)

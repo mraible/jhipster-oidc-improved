@@ -28,9 +28,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 /**
- * Test class for the AuditResource REST controller.
- *
- * @see AuditResource
+ * Integration tests for the {@link AuditResource} REST controller.
  */
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = JhipsterApp.class)
@@ -112,7 +110,7 @@ public class AuditResourceIT {
         auditEventRepository.save(auditEvent);
 
         // Generate dates for selecting audits by date, making sure the period will contain the audit
-        String fromDate  = SAMPLE_TIMESTAMP.minusSeconds(SECONDS_PER_DAY).toString().substring(0, 10);
+        String fromDate = SAMPLE_TIMESTAMP.minusSeconds(SECONDS_PER_DAY).toString().substring(0, 10);
         String toDate = SAMPLE_TIMESTAMP.plusSeconds(SECONDS_PER_DAY).toString().substring(0, 10);
 
         // Get the audit

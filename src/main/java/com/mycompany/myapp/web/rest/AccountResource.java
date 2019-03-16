@@ -6,7 +6,7 @@ import com.mycompany.myapp.web.rest.errors.InternalServerErrorException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.security.oauth2.provider.OAuth2Authentication;
+import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -30,10 +30,10 @@ public class AccountResource {
     }
 
     /**
-     * GET  /authenticate : check if the user is authenticated, and return its login.
+     * {@code GET  /authenticate} : check if the user is authenticated, and return its login.
      *
-     * @param request the HTTP request
-     * @return the login if the user is authenticated
+     * @param request the HTTP request.
+     * @return the login if the user is authenticated.
      */
     @GetMapping("/authenticate")
     public String isAuthenticated(HttpServletRequest request) {
@@ -42,18 +42,18 @@ public class AccountResource {
     }
 
     /**
-     * GET  /account : get the current user.
+     * {@code GET  /account} : get the current user.
      *
-     * @param principal the current user; resolves to null if not authenticated
-     * @return the current user
-     * @throws InternalServerErrorException 500 (Internal Server Error) if the user couldn't be returned
+     * @param principal the current user; resolves to {@code null} if not authenticated.
+     * @return the current user.
+     * @throws InternalServerErrorException {@code 500 (Internal Server Error)} if the user couldn't be returned.
      */
     @GetMapping("/account")
     @SuppressWarnings("unchecked")
     public UserDTO getAccount(Principal principal) {
         if (principal != null) {
-            if (principal instanceof OAuth2Authentication) {
-                return userService.getUserFromAuthentication((OAuth2Authentication) principal);
+            if (principal instanceof OAuth2AuthenticationToken) {
+                return userService.getUserFromAuthentication((OAuth2AuthenticationToken) principal);
             } else {
                 // Allow Spring Security Test to be used to mock users in the database
                 return userService.getUserWithAuthorities()

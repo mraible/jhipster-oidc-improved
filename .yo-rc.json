@@ -4,7 +4,7 @@
       "packageName": "com.mycompany.myapp",
       "nativeLanguage": "en"
     },
-    "jhipsterVersion": "5.8.1",
+    "jhipsterVersion": "5.8.2",
     "applicationType": "monolith",
     "baseName": "jhipster",
     "packageName": "com.mycompany.myapp",
@@ -25,7 +25,7 @@
     "clientFramework": "angularX",
     "useSass": true,
     "clientPackageManager": "npm",
-    "testFrameworks": [],
+    "testFrameworks": ["protractor"],
     "jhiPrefix": "jhi",
     "entitySuffix": "",
     "dtoSuffix": "DTO",
